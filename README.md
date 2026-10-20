@@ -42,7 +42,7 @@ errors appear inline. The component does not access browser APIs until mounted.
 
 ## Development
 
-Requires Node.js 18+ and npm:
+Requires Node.js 24+ and npm, matching the Go CMS Admin SDK:
 
 ```sh
 npm install

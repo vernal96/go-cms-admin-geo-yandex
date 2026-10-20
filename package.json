@@ -2,6 +2,7 @@
   "name": "@go-cms/admin-geo-yandex",
   "version": "0.1.0",
   "type": "module",
+  "engines": { "node": ">=24" },
   "description": "Yandex geolocation field editor for Go CMS Admin",
   "files": [
     "dist",
@@ -20,7 +21,8 @@
     "build": "vite build && vue-tsc --declaration --emitDeclarationOnly --outDir dist -p tsconfig.build.json",
     "typecheck": "vue-tsc --noEmit",
     "test": "vitest run",
-    "prepack": "npm run typecheck && npm test && npm run build"
+    "prepare": "npm run build",
+    "prepack": "npm run typecheck && npm test"
   },
   "peerDependencies": {
     "@go-cms/admin": ">=0.8.0",
