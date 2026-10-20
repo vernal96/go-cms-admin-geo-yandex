@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import { defineComponent, h, ref } from 'vue'
 import { describe, expect, it, vi } from 'vitest'
 import CoordinatesField from './CoordinatesField.vue'
 import { getMapConfig } from './api'
@@ -66,8 +67,49 @@ describe('CoordinatesField', () => {
     listener.props.onClick(undefined, { coordinates: [37.61, 55.75] })
     await vi.waitFor(() => expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([{ lat: 55.75, lon: 37.61 }]))
     const marker = children.find(child => child instanceof MockMarker) as MockMarker
-    marker.props.onDragEnd({ coordinates: [37.62, 55.76] })
-    await vi.waitFor(() => expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([{ lat: 55.76, lon: 37.62 }]))
+    marker.props.onDragEnd([38, 56])
+    await vi.waitFor(() => expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([{ lat: 56, lon: 38 }]))
+    expect((wrapper.findAll('input[type="number"]')[0]!.element as HTMLInputElement).value).toBe('56')
+    expect((wrapper.findAll('input[type="number"]')[1]!.element as HTMLInputElement).value).toBe('38')
+    wrapper.unmount()
+    delete window.ymaps3
+  })
+
+  it('propagates a drag through a controlled v-model parent', async () => {
+    const children: any[] = []
+    class MockMap {
+      addChild(child: any) { children.push(child) }
+      removeChild(child: any) { const index = children.indexOf(child); if (index >= 0) children.splice(index, 1) }
+      destroy() {}
+    }
+    class MockMarker { constructor(public props: any) {} }
+    vi.mocked(getMapConfig).mockResolvedValue({ js_api_key: 'test-key' })
+    window.ymaps3 = {
+      ready: Promise.resolve(),
+      YMap: MockMap,
+      YMapDefaultSchemeLayer: class {},
+      YMapDefaultFeaturesLayer: class {},
+      YMapListener: class {},
+      YMapMarker: MockMarker,
+    }
+    const Host = defineComponent({
+      setup() {
+        const point = ref<{ lat: number; lon: number } | null | undefined>({ lat: 55, lon: 37 })
+        return () => h(CoordinatesField, {
+          modelValue: point.value,
+          'onUpdate:modelValue': (value: { lat: number; lon: number } | null | undefined) => { point.value = value },
+        })
+      },
+    })
+    const wrapper = mount(Host)
+    await vi.waitFor(() => expect(children.some(child => child instanceof MockMarker)).toBe(true))
+    const marker = children.find(child => child instanceof MockMarker) as MockMarker
+    marker.props.onDragEnd([38, 56])
+    const field = wrapper.findComponent(CoordinatesField)
+    await vi.waitFor(() => expect(field.props('modelValue')).toEqual({ lat: 56, lon: 38 }))
+    const inputs = field.findAll('input[type="number"]')
+    expect((inputs[0]!.element as HTMLInputElement).value).toBe('56')
+    expect((inputs[1]!.element as HTMLInputElement).value).toBe('38')
     wrapper.unmount()
     delete window.ymaps3
   })
