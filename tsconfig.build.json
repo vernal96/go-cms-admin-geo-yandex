@@ -1,0 +1,4 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["src/index.ts", "src/api.ts", "src/CoordinatesField.vue", "src/sdk.d.ts"]
+}

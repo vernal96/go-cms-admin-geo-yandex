@@ -1,0 +1,11 @@
+import { defineConfig } from 'vitest/config'
+import vue from '@vitejs/plugin-vue'
+
+export default defineConfig({
+  plugins: [vue()],
+  build: {
+    lib: { entry: 'src/index.ts', formats: ['es'], fileName: 'index' },
+    rollupOptions: { external: ['vue', '@go-cms/admin/sdk'] },
+  },
+  test: { environment: 'jsdom' },
+})
